@@ -1,53 +1,36 @@
-from fastapi import FastAPI, File, Query, UploadFile, HTTPException, Form
-from fastapi.responses import FileResponse, PlainTextResponse
-import uvicorn
+from fastapi import FastAPI
 import joblib
+import uvicorn
 import numpy as np
-from pydantic import BaseModel
+import os
 
+app = FastAPI(title="Credit Card Fraud Detection API")
 
+# Load Model
+model = joblib.load("credit_fraud.pkl")
 
-app = FastAPI(
-    title="Credit Card Fraud Detection API",
-    description="""An API that utilises a Machine Learning model that detects if a credit card transaction is fraudulent or not based on the following features: hours, amount, transaction type etc.""",
-    version="1.0.0", debug=True)
+@app.get("/")
+def home():
+    return {"message": "Backend is running!"}
 
+@app.post("/predict/")
+def predict(data: dict):
 
-model = joblib.load('credit_fraud.pkl')
+    features = np.array([[
+        data["step"],
+        data["types"],
+        data["amount"],
+        data["oldbalanceorig"],
+        data["newbalanceorig"],
+        data["oldbalancedest"],
+        data["newbalancedest"],
+        data["isflaggedfraud"]
+    ]])
 
-@app.get("/", response_class=PlainTextResponse)
-async def running():
-  note = """
-Credit Card Fraud Detection API 🙌🏻
+    prediction = model.predict(features)[0]
 
-Note: add "/docs" to the URL to get the Swagger UI Docs or "/redoc"
-  """
-  return note
+    return {"prediction": int(prediction)}
 
-favicon_path = 'favicon.png'
-@app.get('/favicon.png', include_in_schema=False)
-async def favicon():
-    return FileResponse(favicon_path)
-																	
-class fraudDetection(BaseModel):
-    step:int
-    types:int
-    amount:float	
-    oldbalanceorig:float	
-    newbalanceorig:float	
-    oldbalancedest:float	
-    newbalancedest:float	
-    isflaggedfraud:float
-
-
-@app.post('/predict')
-def predict(data : fraudDetection):
-                                                                                                                                                                                                                                
-    features = np.array([[data.step, data.types, data.amount, data.oldbalanceorig, data.newbalanceorig, data.oldbalancedest, data.newbalancedest, data.isflaggedfraud]])
-    model = joblib.load('credit_fraud.pkl')
-
-    predictions = model.predict(features)
-    if predictions == 1:
-        return {"fraudulent"}
-    elif predictions == 0:
-        return {"not fraudulent"}
+if __name__ == "__main__":
+    port = int(os.getenv("PORT", 8000))
+    uvicorn.run("app:app", host="0.0.0.0", port=port)
