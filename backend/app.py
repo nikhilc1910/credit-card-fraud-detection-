@@ -1,17 +1,14 @@
 from fastapi import FastAPI
 import joblib
-import uvicorn
 import numpy as np
-import os
 
-app = FastAPI(title="Credit Card Fraud Detection API")
+app = FastAPI()
 
-# Load Model
 model = joblib.load("credit_fraud.pkl")
 
 @app.get("/")
 def home():
-    return {"message": "Backend is running!"}
+    return {"status": "Backend up and running"}
 
 @app.post("/predict/")
 def predict(data: dict):
@@ -24,13 +21,9 @@ def predict(data: dict):
         data["newbalanceorig"],
         data["oldbalancedest"],
         data["newbalancedest"],
-        data["isflaggedfraud"]
+        data["isflaggedfraud"],
     ]])
 
-    prediction = model.predict(features)[0]
-
-    return {"prediction": int(prediction)}
-
-if __name__ == "__main__":
-    port = int(os.getenv("PORT", 8000))
-    uvicorn.run("app:app", host="0.0.0.0", port=port)
+    prediction = int(model.predict(features)[0])
+    
+    return {"prediction": prediction}
