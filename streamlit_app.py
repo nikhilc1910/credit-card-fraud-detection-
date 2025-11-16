@@ -1,5 +1,5 @@
 import streamlit as st
-import joblib
+import requests
 import numpy as np
 
 st.set_page_config(page_title="Credit Card Fraud Detection Web App", layout="wide")
@@ -7,19 +7,14 @@ st.set_page_config(page_title="Credit Card Fraud Detection Web App", layout="wid
 st.title("Credit Card Fraud Detection Web App")
 st.image("image.png")
 
-# Load the model
-@st.cache_resource
-def load_model():
-    return joblib.load("credit_fraud.pkl")
-
-model = load_model()
-
+# Your deployed API URL on Render
+API_URL = "https://credit-card-fraud-detection-4mjn.onrender.com/predict"
 
 st.write("""
 ## About
-This Streamlit app predicts **fraudulent credit card transactions** using a machine learning model.
+This Streamlit app predicts **fraudulent credit card transactions** using a machine learning model hosted on a FastAPI backend.
 
-Enter the transaction details on the left and click **Detection Result** to see if the transaction is fraudulent.
+Enter the transaction details on the left and click **Detection Result** to check if the transaction is fraudulent.
 """)
 
 # Sidebar inputs
@@ -54,13 +49,32 @@ if st.button("Detection Result"):
     if sender_name == "" or receiver_name == "":
         st.error("Please enter Sender ID and Receiver ID!")
     else:
-        features = np.array([[step, types, amount, oldbalanceorg, newbalanceorg,
-                              oldbalancedest, newbalancedest, isflaggedfraud]])
 
-        prediction = model.predict(features)[0]
+        payload = {
+            "step": step,
+            "type": types,
+            "amount": amount,
+            "oldbalanceOrig": oldbalanceorg,
+            "newbalanceOrig": newbalanceorg,
+            "oldbalanceDest": oldbalancedest,
+            "newbalanceDest": newbalancedest,
+            "isFlaggedFraud": isflaggedfraud
+        }
 
-        result = "Fraudulent ❌" if prediction == 1 else "Legitimate ✅"
+        try:
+            response = requests.post(API_URL, json=payload)
 
-        st.subheader("Prediction Result")
-        st.write(f"**The transaction between `{sender_name}` and `{receiver_name}` is:**")
-        st.success(result) if prediction == 0 else st.error(result)
+            if response.status_code == 200:
+                prediction = response.json()
+
+                pred_value = prediction.get("prediction")
+                result = "Fraudulent ❌" if pred_value == 1 else "Legitimate ✅"
+
+                st.subheader("Prediction Result")
+                st.write(f"**The transaction between `{sender_name}` and `{receiver_name}` is:**")
+                st.success(result) if pred_value == 0 else st.error(result)
+            else:
+                st.error(f"API Error {response.status_code}: Unable to process request.")
+
+        except Exception as e:
+            st.error(f"Connection Error: {e}")
