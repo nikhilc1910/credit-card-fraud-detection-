@@ -19,10 +19,6 @@ Credit card fraud is an inclusive term for fraud committed using a payment card,
 
 The machine learning model used for this web application was deployed as an API using the FastAPI framework and then accessed through a frontend interface with Streamlit.
 
-The App can be viewed [through this link](https://share.streamlit.io/nneji123/credit-card-fraud-detection/main)
-
-
-The API and its documentation can be viewed [here](https://credit-fraud-ml-api.herokuapp.com/docs) or [here.](https://credit-fraud-ml-api.herokuapp.com/redoc)
 
 ## Data Preparation
 
@@ -41,20 +37,6 @@ In this project 2 different classification algorithms were tested namely:
 The final model used for the API was the **Random Forest Classifier** model which had an accuracy score of 0.99 and an F1 score of 0.86.
 
 
-## Preview
-
-### API Demo
-![api](https://user-images.githubusercontent.com/101701760/174500152-c6256170-5c8e-42dd-b5e7-4a01c805ab99.gif)
-
-
-### Streamlit App Demo
-
-
-![credit](https://user-images.githubusercontent.com/101701760/174500101-d70e5ec1-bb50-4a67-be13-1cb561c9ed11.gif)
-
-## How to run API and Streamlit App on Google Colab:
-<details> 
-  <summary><b>💻 Running the API on Google Colab</b></summary>
 
 To run a demo or carry out testing with the API it's best to do that with Google Colab. To run/test the API on Google Colab do the following:
 1. Clone the repository to your Google Colab Instance.
@@ -156,12 +138,6 @@ Logs can be inspected via:
 docker-compose logs
 ```
 The **docker-compose** method can also be used to deploy the API and Streamlit app on Heroku(using Dockhero which is not free) or using cloud services such as Microsoft Azure, Amazon Web Services or Google Cloud Platform.
-
-### Running in a Gitpod Cloud Environment
-
-**Click the button below to start a new development environment:**
-
-[![Open in Gitpod](https://gitpod.io/button/open-in-gitpod.svg)](https://gitpod.io/#https://github.com/Nneji123/Credit-Card-Fraud-Detection.)
 
 ## Deployment
 The API and Streamlit App have both been deployed using the dockerfile on heroku and Streamlit Cloud respectively.
