@@ -1,80 +1,45 @@
 import streamlit as st
 import requests
-import numpy as np
-
-st.set_page_config(page_title="Credit Card Fraud Detection Web App", layout="wide")
+import json
 
 st.title("Credit Card Fraud Detection Web App")
 st.image("image.png")
 
-# Your deployed API URL on Render
-API_URL = "https://credit-card-fraud-detection-4mjn.onrender.com/predict"
+BACKEND_URL = "https://credit-card-fraud-detection-4mjn.onrender.com/predict/"
 
-st.write("""
-## About
-This Streamlit app predicts **fraudulent credit card transactions** using a machine learning model hosted on a FastAPI backend.
-
-Enter the transaction details on the left and click **Detection Result** to check if the transaction is fraudulent.
-""")
-
-# Sidebar inputs
-st.sidebar.header("Input Features of The Transaction")
+st.sidebar.header('Input Features of The Transaction')
 
 sender_name = st.sidebar.text_input("Input Sender ID")
 receiver_name = st.sidebar.text_input("Input Receiver ID")
-step = st.sidebar.slider("Number of Hours it took to complete:", 0, 100, 0)
+step = st.sidebar.slider("Hours Passed:", 0, 744)
+types = st.sidebar.selectbox("Transaction Type", (0,1,2,3,4))
+amount = st.sidebar.number_input("Amount", min_value=0, max_value=110000)
+oldbalanceorg = st.sidebar.number_input("Sender Balance Before", min_value=0, max_value=110000)
+newbalanceorg = st.sidebar.number_input("Sender Balance After", min_value=0, max_value=110000)
+oldbalancedest = st.sidebar.number_input("Receiver Balance Before", min_value=0, max_value=110000)
+newbalancedest = st.sidebar.number_input("Receiver Balance After", min_value=0, max_value=110000)
+isflaggedfraud = st.sidebar.selectbox("System Flag Fraud", (0,1))
 
-st.sidebar.write("""
-### Enter Type of Transfer:
-0 = Cash In  
-1 = Cash Out  
-2 = Debit  
-3 = Payment  
-4 = Transfer  
-""")
-
-types = st.sidebar.selectbox("Transaction Type", (0, 1, 2, 3, 4))
-
-amount = st.sidebar.number_input("Amount in $", min_value=0, max_value=500000)
-oldbalanceorg = st.sidebar.number_input("Sender Balance Before Transaction", min_value=0, max_value=500000)
-newbalanceorg = st.sidebar.number_input("Sender Balance After Transaction", min_value=0, max_value=500000)
-oldbalancedest = st.sidebar.number_input("Recipient Balance Before Transaction", min_value=0, max_value=500000)
-newbalancedest = st.sidebar.number_input("Recipient Balance After Transaction", min_value=0, max_value=500000)
-
-isflaggedfraud = 1 if amount >= 200000 else 0
-
-# Prediction button
 if st.button("Detection Result"):
+    values = {
+        "step": step,
+        "types": types,
+        "amount": amount,
+        "oldbalanceorig": oldbalanceorg,
+        "newbalanceorig": newbalanceorg,
+        "oldbalancedest": oldbalancedest,
+        "newbalancedest": newbalancedest,
+        "isflaggedfraud": isflaggedfraud
+    }
 
-    if sender_name == "" or receiver_name == "":
-        st.error("Please enter Sender ID and Receiver ID!")
-    else:
+    try:
+        response = requests.post(BACKEND_URL, json=values)
+        result = response.json().get("prediction")
 
-        payload = {
-            "step": step,
-            "type": types,
-            "amount": amount,
-            "oldbalanceOrig": oldbalanceorg,
-            "newbalanceOrig": newbalanceorg,
-            "oldbalanceDest": oldbalancedest,
-            "newbalanceDest": newbalancedest,
-            "isFlaggedFraud": isflaggedfraud
-        }
-
-        try:
-            response = requests.post(API_URL, json=payload)
-
-            if response.status_code == 200:
-                prediction = response.json()
-
-                pred_value = prediction.get("prediction")
-                result = "Fraudulent ❌" if pred_value == 1 else "Legitimate ✅"
-
-                st.subheader("Prediction Result")
-                st.write(f"**The transaction between `{sender_name}` and `{receiver_name}` is:**")
-                st.success(result) if pred_value == 0 else st.error(result)
-            else:
-                st.error(f"API Error {response.status_code}: Unable to process request.")
-
-        except Exception as e:
-            st.error(f"Connection Error: {e}")
+        if result == 1:
+            st.error("🚨 FRAUDULENT TRANSACTION DETECTED")
+        else:
+            st.success("✅ LEGITIMATE TRANSACTION")
+    except Exception as e:
+        st.error("❌ Cannot connect to backend")
+        st.write(str(e))
