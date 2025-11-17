@@ -16,7 +16,8 @@ Enter all transaction details on the left, then click **Detection Result**.
 """)
 
 # Your Render FastAPI backend URL
-API_URL = "https://credit-card-fraud-detection-4mjn.onrender.com/predict"
+API_URL = "https://credit-card-fraud-detection-4mjn.onrender.com/predict/"
+
 
 # Sidebar inputs
 st.sidebar.header("Input Features of The Transaction")
