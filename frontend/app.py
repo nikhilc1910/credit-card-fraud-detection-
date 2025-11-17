@@ -53,13 +53,13 @@ if st.button("Detection Result"):
     else:
         payload = {
             "step": step,
-            "type": types,
+            "types": types,
             "amount": amount,
-            "oldbalanceOrig": oldbalanceorg,
-            "newbalanceOrig": newbalanceorg,
-            "oldbalanceDest": oldbalancedest,
-            "newbalanceDest": newbalancedest,
-            "isFlaggedFraud": isflaggedfraud
+            "oldbalanceorig": oldbalanceorg,
+            "newbalanceorig": newbalanceorg,
+            "oldbalancedest": oldbalancedest,
+            "newbalancedest": newbalancedest,
+            "isflaggedfraud": isflaggedfraud
         }
 
         try:
@@ -76,6 +76,7 @@ if st.button("Detection Result"):
 
             else:
                 st.error(f"API ERROR: Status Code {response.status_code}")
+                st.write(response.text)
 
         except Exception as e:
             st.error(f"Error connecting to API: {e}")
